@@ -33,16 +33,22 @@
 
 ## 免费部署
 
-这个项目是纯静态文件，可以部署到 Cloudflare Pages、Netlify Drop 或其他免费静态托管服务。
+这个项目是纯静态文件，可以部署到 GitHub Pages。
 
 ## 公网访问
 
 本地地址 `127.0.0.1` 和局域网地址 `192.168.x.x` 只适合预览。手机和电脑不在同一个 Wi-Fi 时，需要部署到公网静态托管。
 
-不用 GitHub 的免费方案：
+GitHub Pages 发布方式：
 
-1. Cloudflare Pages：直接上传整个 `pill` 文件夹，得到一个 `*.pages.dev` 网址。
-2. Netlify Drop：直接拖拽整个 `pill` 文件夹，得到一个 `*.netlify.app` 网址。
-3. Cloudflare Quick Tunnel：临时把本机预览服务暴露到公网，得到一个 `*.trycloudflare.com` 网址。
+1. 把项目推送到 GitHub 仓库。
+2. 进入仓库 Settings。
+3. 进入 Pages。
+4. Source 选择 `Deploy from a branch`。
+5. Branch 选择 `main`，目录选择 `/root`。
 
-部署时不需要构建命令，发布目录就是项目根目录。
+发布后，公网地址通常是：
+
+```text
+https://hyneon.github.io/pill/
+```
