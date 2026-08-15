@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <rect width="800" height="800" fill="#f4fbf6"/>
+  <circle cx="400" cy="310" r="140" fill="#dff0e6"/>
+  <path d="M250 452h300v176H250z" fill="#2f7d59"/>
+  <path d="M220 382h360v96H220z" fill="#73a86d"/>
+  <path d="M378 382h44v246h-44z" fill="#fffdf8"/>
+  <path d="M285 290c58-68 100-44 115 92-116-3-156-34-115-92Z" fill="#b96d22"/>
+  <path d="M515 290c-58-68-100-44-115 92 116-3 156-34 115-92Z" fill="#b96d22"/>
+  <text x="400" y="705" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" fill="#24211c">今天也完成了</text>
+</svg>

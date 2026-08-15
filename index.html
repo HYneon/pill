@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fbfbf9" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="pill" />
+    <title>pill</title>
+    <link rel="manifest" href="manifest.json?v=4" />
+    <link rel="apple-touch-icon" href="assets/icon.svg" />
+    <link rel="stylesheet" href="styles.css?v=4" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="meta">
+        <time id="todayLabel" datetime="">今天</time>
+        <button class="box-chip" id="openBoxButton" type="button" disabled>
+          <span id="boxLabel">0/5</span>
+        </button>
+      </header>
+
+      <section class="stage" aria-label="今日用药">
+        <button class="pill-button" id="doseButton" type="button">
+          <span>pill</span>
+        </button>
+        <p id="statusText">正在读取记录...</p>
+      </section>
+
+      <section class="timeline-area" aria-label="用药时间轴">
+        <div class="timeline-scroll" id="timelineScroll">
+          <ol class="timeline" id="timeline"></ol>
+        </div>
+      </section>
+    </main>
+
+    <div class="portrait-lock" role="status" aria-live="polite">
+      <p>请竖屏</p>
+    </div>
+
+    <dialog class="box-dialog" id="boxDialog">
+      <div class="dialog-body">
+        <button class="close" id="closeDialogButton" type="button" aria-label="关闭">×</button>
+        <p class="dialog-kicker">盲盒</p>
+        <img id="boxImage" alt="盲盒图片" />
+        <p id="boxCaption"></p>
+      </div>
+    </dialog>
+
+    <script src="app.js?v=4"></script>
+  </body>
+</html>
