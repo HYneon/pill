@@ -50,11 +50,24 @@ const els = {
 init();
 
 async function init() {
+  bindViewportHeight();
   registerServiceWorker();
   wireEvents();
   await loadBoxes();
   render();
   setInterval(render, 30000);
+}
+
+function bindViewportHeight() {
+  const setHeight = () => {
+    document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
+  };
+
+  setHeight();
+  window.addEventListener("resize", setHeight);
+  window.addEventListener("orientationchange", () => {
+    setTimeout(setHeight, 250);
+  });
 }
 
 function wireEvents() {

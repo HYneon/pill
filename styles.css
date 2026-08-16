@@ -19,9 +19,15 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
-  min-height: 100vh;
+  height: 100%;
   margin: 0;
+  overflow: hidden;
   color: var(--ink);
   background: var(--bg);
 }
@@ -39,14 +45,21 @@ button:disabled {
 
 .app {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: 56px minmax(0, 1fr) 104px;
   width: min(100%, 520px);
-  min-height: 100vh;
+  height: var(--app-height, 100svh);
   margin: 0 auto;
   padding:
-    max(18px, env(safe-area-inset-top))
+    env(safe-area-inset-top)
     0
-    max(28px, env(safe-area-inset-bottom));
+    env(safe-area-inset-bottom);
+  overflow: hidden;
+}
+
+@supports (height: 100dvh) {
+  .app {
+    height: var(--app-height, 100dvh);
+  }
 }
 
 .meta {
@@ -54,7 +67,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   min-height: 52px;
-  padding: 0 24px;
+  padding: 4px 24px 0;
 }
 
 .meta time {
@@ -83,9 +96,10 @@ button:disabled {
   display: grid;
   place-items: center;
   align-content: center;
-  gap: 28px;
-  min-height: 470px;
-  padding: 24px;
+  gap: 18px;
+  min-height: 0;
+  padding: 8px 24px 0;
+  overflow: hidden;
 }
 
 .pill-button {
@@ -158,13 +172,15 @@ button:disabled {
 }
 
 .timeline-area {
-  padding-bottom: 8px;
+  min-height: 0;
+  padding-bottom: 0;
+  overflow: hidden;
 }
 
 .timeline-scroll {
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  padding: 22px 0 8px;
+  padding: 12px 0 0;
   scrollbar-width: none;
 }
 
@@ -322,12 +338,6 @@ button:disabled {
 
   .portrait-lock {
     display: grid;
-  }
-}
-
-@media (max-height: 720px) {
-  .stage {
-    min-height: 390px;
   }
 }
 
