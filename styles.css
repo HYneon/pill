@@ -314,7 +314,7 @@ button:disabled {
   letter-spacing: 0;
 }
 
-@media (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) {
   .app,
   .box-dialog {
     display: none;
