@@ -4,11 +4,11 @@
   --ink: #111;
   --muted: #8c8c86;
   --soft: #ededeb;
-  --done: #111;
+  --morning: #b9ddff;
+  --evening: #c8ccd2;
   --active: #2f7d59;
-  --missed: #d66161;
-  --pending: #d8d8d2;
-  --future: #eeeeea;
+  --pending: #e5e5e1;
+  --future: #efefeb;
   --shadow: 0 22px 54px rgba(0, 0, 0, 0.08);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
@@ -229,25 +229,20 @@ button:disabled {
   height: 62px;
   border-radius: 50%;
   background: var(--outer, var(--pending));
-  box-shadow:
-    inset 0 0 0 8px #fff,
-    0 0 0 1px rgba(0, 0, 0, 0.03);
+  box-shadow: none;
 }
 
 .dual-dot::after {
-  width: 24px;
-  height: 24px;
-  border: 5px solid #fff;
+  width: 28px;
+  height: 28px;
+  border: 0;
   border-radius: 50%;
   background: var(--inner, var(--pending));
   content: "";
 }
 
 .day-node.today .dual-dot {
-  box-shadow:
-    inset 0 0 0 8px #fff,
-    0 0 0 2px var(--ink),
-    0 14px 34px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.06);
 }
 
 .day-label {

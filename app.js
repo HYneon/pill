@@ -22,11 +22,9 @@ const fallbackBoxes = [
 ];
 
 const statusColors = {
-  done: "#111111",
-  active: "#2f7d59",
-  missed: "#d66161",
-  pending: "#d8d8d2",
-  future: "#eeeeea",
+  morningDone: "#b9ddff",
+  eveningDone: "#c8ccd2",
+  empty: "#e5e5e1",
 };
 
 const state = loadState();
@@ -191,6 +189,8 @@ function renderTimeline(now) {
       const day = getDay(date);
       const morningStatus = getDoseStatus(date, "morning", day, now);
       const eveningStatus = getDoseStatus(date, "evening", day, now);
+      const innerColor = morningStatus === "done" ? statusColors.morningDone : statusColors.empty;
+      const outerColor = eveningStatus === "done" ? statusColors.eveningDone : statusColors.empty;
       const label = date === today ? "今" : String(Number(date.slice(-2)));
       const aria = `${date}，早药${statusText(morningStatus)}，晚药${statusText(eveningStatus)}`;
 
@@ -199,7 +199,7 @@ function renderTimeline(now) {
           <button class="day-node ${date === today ? "today" : ""}" type="button" aria-label="${aria}" data-date="${date}">
             <span
               class="dual-dot"
-              style="--outer: ${statusColors[morningStatus]}; --inner: ${statusColors[eveningStatus]}"
+              style="--outer: ${outerColor}; --inner: ${innerColor}"
               aria-hidden="true"
             ></span>
             <span class="day-label">${label}</span>
