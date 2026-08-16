@@ -1,7 +1,7 @@
 const CONFIG = {
   doseWindows: {
-    morning: { label: "早药", start: "07:00", end: "10:00" },
-    evening: { label: "晚药", start: "19:00", end: "22:00" },
+    morning: { label: "午药", start: "11:00", end: "14:00" },
+    evening: { label: "晚药", start: "22:00", end: "01:00" },
   },
   daysPerBox: 5,
   storageKey: "pill:v1",
@@ -94,17 +94,16 @@ async function loadBoxes() {
 
 function recordCurrentDose() {
   const now = new Date();
-  const today = dateKey(now);
-  const day = getDay(today);
-  const action = getCurrentAction(now, day);
+  const action = getCurrentAction(now);
 
   if (!action.type) {
     showMessage(action.message);
     return;
   }
 
+  const day = getDay(action.date);
   day[action.type] = now.toISOString();
-  state.days[today] = day;
+  state.days[action.date] = day;
 
   if (isCompleteDay(day) && !day.rewarded) {
     day.rewarded = true;
@@ -148,8 +147,8 @@ function openBox() {
 function render() {
   const now = new Date();
   const today = dateKey(now);
-  const day = getDay(today);
-  const action = getCurrentAction(now, day);
+  const action = getCurrentAction(now);
+  const day = getDay(action.date || today);
 
   els.todayLabel.textContent = formatDate(now);
   els.todayLabel.dateTime = today;
@@ -192,7 +191,7 @@ function renderTimeline(now) {
       const innerColor = morningStatus === "done" ? statusColors.morningDone : statusColors.empty;
       const outerColor = eveningStatus === "done" ? statusColors.eveningDone : statusColors.empty;
       const label = date === today ? "今" : String(Number(date.slice(-2)));
-      const aria = `${date}，早药${statusText(morningStatus)}，晚药${statusText(eveningStatus)}`;
+      const aria = `${date}，午药${statusText(morningStatus)}，晚药${statusText(eveningStatus)}`;
 
       return `
         <li>
@@ -234,39 +233,43 @@ function buildTimelineDates(now) {
   return dates;
 }
 
-function getCurrentAction(now, day) {
+function getCurrentAction(now) {
+  const today = dateKey(now);
+  const day = getDay(today);
   const morning = CONFIG.doseWindows.morning;
   const evening = CONFIG.doseWindows.evening;
 
   if (isWithinWindow(now, morning)) {
     return day.morning
-      ? { type: null, message: `早药已记录，${evening.start} 后记录晚药` }
-      : { type: "morning", message: `${morning.start} - ${morning.end}` };
+      ? { type: null, date: today, message: `午药已记录，${evening.start} 后记录晚药` }
+      : { type: "morning", date: today, message: formatWindow(morning) };
   }
 
   if (isWithinWindow(now, evening)) {
-    return day.evening
-      ? { type: null, message: "晚药已记录，今天完成" }
-      : { type: "evening", message: `${evening.start} - ${evening.end}` };
+    const eveningDate = windowOwnerDate(now, evening);
+    const eveningDay = getDay(eveningDate);
+    return eveningDay.evening
+      ? { type: null, date: eveningDate, message: isCompleteDay(eveningDay) ? "这一天已完成" : "晚药已记录" }
+      : { type: "evening", date: eveningDate, message: formatWindow(evening) };
   }
 
   if (isCompleteDay(day)) {
-    return { type: null, message: "今天完成" };
+    return { type: null, date: today, message: "今天完成" };
   }
 
   if (isBeforeWindow(now, morning)) {
-    return { type: null, message: `${morning.start} 后记录早药` };
+    return { type: null, date: today, message: `${morning.start} 后记录午药` };
   }
 
   if (!day.morning && isBeforeWindow(now, evening)) {
-    return { type: null, message: `早药已错过，${evening.start} 后记录晚药` };
+    return { type: null, date: today, message: `午药已错过，${evening.start} 后记录晚药` };
   }
 
   if (day.morning && isBeforeWindow(now, evening)) {
-    return { type: null, message: `${evening.start} 后记录晚药` };
+    return { type: null, date: today, message: `${evening.start} 后记录晚药` };
   }
 
-  return { type: null, message: "今天的记录时间已结束" };
+  return { type: null, date: today, message: "今天的记录时间已结束" };
 }
 
 function getDoseStatus(date, type, day, now) {
@@ -274,13 +277,13 @@ function getDoseStatus(date, type, day, now) {
   if (date < state.startedAt) return "future";
 
   const today = dateKey(now);
-  if (date > today) return "future";
-  if (date < today) return "missed";
-
   const window = CONFIG.doseWindows[type];
-  if (isWithinWindow(now, window)) return "active";
-  if (isAfterWindow(now, window)) return "missed";
-  return "pending";
+  const range = windowRangeForDate(date, window);
+  const nowTime = now.getTime();
+
+  if (nowTime > range.end.getTime()) return "missed";
+  if (nowTime >= range.start.getTime()) return "active";
+  return date === today ? "pending" : "future";
 }
 
 function getDay(date) {
@@ -299,20 +302,57 @@ function isCompleteDay(day) {
 
 function isWithinWindow(date, window) {
   const minutes = minutesSinceMidnight(date);
-  return minutes >= parseTime(window.start) && minutes <= parseTime(window.end);
+  const start = parseTime(window.start);
+  const end = parseTime(window.end);
+  return start <= end ? minutes >= start && minutes <= end : minutes >= start || minutes <= end;
 }
 
 function isBeforeWindow(date, window) {
   return minutesSinceMidnight(date) < parseTime(window.start);
 }
 
-function isAfterWindow(date, window) {
-  return minutesSinceMidnight(date) > parseTime(window.end);
-}
-
 function parseTime(value) {
   const [hours, minutes] = value.split(":").map(Number);
   return hours * 60 + minutes;
+}
+
+function windowOwnerDate(date, window) {
+  if (!windowWraps(window)) return dateKey(date);
+  return minutesSinceMidnight(date) <= parseTime(window.end) ? dateKey(addDays(date, -1)) : dateKey(date);
+}
+
+function windowRangeForDate(date, window) {
+  const start = dateAtTime(date, window.start);
+  const end = dateAtTime(date, window.end);
+  if (windowWraps(window)) {
+    end.setDate(end.getDate() + 1);
+  }
+  return { start, end };
+}
+
+function windowWraps(window) {
+  return parseTime(window.start) > parseTime(window.end);
+}
+
+function dateAtTime(date, time) {
+  const result = dateFromKey(date);
+  const [hours, minutes] = time.split(":").map(Number);
+  result.setHours(hours, minutes, 0, 0);
+  return result;
+}
+
+function dateFromKey(value) {
+  const [year, month, day] = value.split("-").map(Number);
+  const result = new Date();
+  result.setFullYear(year, month - 1, day);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
+
+function addDays(date, days) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
 }
 
 function minutesSinceMidnight(date) {
@@ -332,6 +372,10 @@ function formatDate(date) {
     day: "numeric",
     weekday: "short",
   }).format(date);
+}
+
+function formatWindow(window) {
+  return windowWraps(window) ? `${window.start} - 次日 ${window.end}` : `${window.start} - ${window.end}`;
 }
 
 function statusText(status) {
