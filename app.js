@@ -22,9 +22,9 @@ const fallbackBoxes = [
 ];
 
 const statusColors = {
-  morningDone: "#b9ddff",
-  eveningDone: "#c8ccd2",
-  empty: "#e5e5e1",
+  morningDone: "rgba(185, 221, 255, 0.62)",
+  eveningDone: "rgba(200, 204, 210, 0.62)",
+  empty: "rgba(229, 229, 225, 0.54)",
 };
 
 const state = loadState();
