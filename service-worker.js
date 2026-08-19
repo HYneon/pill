@@ -1,10 +1,10 @@
-const CACHE_NAME = "pill-cache-v12";
+const CACHE_NAME = "pill-cache-v13";
 const ASSETS = [
   ".",
   "index.html",
-  "styles.css?v=12",
-  "app.js?v=12",
-  "manifest.json?v=12",
+  "styles.css?v=13",
+  "app.js?v=13",
+  "manifest.json?v=13",
   "boxes.json",
   "assets/icon.svg",
   "assets/boxes/box-001.svg",
