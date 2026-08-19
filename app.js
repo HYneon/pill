@@ -49,6 +49,7 @@ init();
 
 async function init() {
   bindViewportHeight();
+  bindTouchGuards();
   registerServiceWorker();
   wireEvents();
   await loadBoxes();
@@ -66,6 +67,64 @@ function bindViewportHeight() {
   window.addEventListener("orientationchange", () => {
     setTimeout(setHeight, 250);
   });
+}
+
+function bindTouchGuards() {
+  const preventDefault = (event) => event.preventDefault();
+  let lastTouchEnd = 0;
+  let timelineStart = null;
+
+  ["gesturestart", "gesturechange", "gestureend"].forEach((eventName) => {
+    document.addEventListener(eventName, preventDefault, { passive: false });
+  });
+
+  document.addEventListener(
+    "touchend",
+    (event) => {
+      const now = Date.now();
+      if (now - lastTouchEnd < 350) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    },
+    { passive: false },
+  );
+
+  els.timelineScroll.addEventListener(
+    "touchstart",
+    (event) => {
+      const touch = event.touches[0];
+      timelineStart = touch ? { x: touch.clientX, y: touch.clientY } : null;
+    },
+    { passive: true },
+  );
+
+  els.timelineScroll.addEventListener(
+    "touchmove",
+    (event) => {
+      if (!timelineStart) return;
+      const touch = event.touches[0];
+      if (!touch) return;
+      const dx = Math.abs(touch.clientX - timelineStart.x);
+      const dy = Math.abs(touch.clientY - timelineStart.y);
+      if (dy > dx) {
+        event.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+
+  document.addEventListener(
+    "touchmove",
+    (event) => {
+      const target = event.target;
+      const inTimeline = target && typeof target.closest === "function" && target.closest(".timeline-scroll");
+      if (!inTimeline) {
+        event.preventDefault();
+      }
+    },
+    { passive: false },
+  );
 }
 
 function wireEvents() {
