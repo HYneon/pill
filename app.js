@@ -52,6 +52,8 @@ async function init() {
   bindTouchGuards();
   registerServiceWorker();
   wireEvents();
+  syncRewardState();
+  saveState();
   await loadBoxes();
   render();
   setInterval(render, 30000);
@@ -161,19 +163,10 @@ function recordCurrentDose() {
   }
 
   const day = getDay(action.date);
-  day[action.type] = now.toISOString();
+  day[action.type] = day[action.type] ? null : now.toISOString();
   state.days[action.date] = day;
 
-  if (isCompleteDay(day) && !day.rewarded) {
-    day.rewarded = true;
-    state.completedDays += 1;
-    state.progress += 1;
-    if (state.progress >= CONFIG.daysPerBox) {
-      state.boxCredits += 1;
-      state.progress -= CONFIG.daysPerBox;
-    }
-  }
-
+  syncRewardState();
   saveState();
   render();
 }
@@ -187,8 +180,8 @@ function openBox() {
     openedAt: new Date().toISOString(),
   };
 
-  state.boxCredits -= 1;
   state.openedBoxes.unshift(opened);
+  syncRewardState();
   saveState();
 
   els.boxImage.src = opened.src;
@@ -218,10 +211,16 @@ function render() {
 }
 
 function renderMainButton(day, action) {
+  const isActionRecorded = Boolean(action.type && action.recorded);
   els.doseButton.disabled = !action.type;
-  els.doseButton.classList.toggle("ready", Boolean(action.type));
-  els.doseButton.classList.toggle("done", isCompleteDay(day));
-  els.doseButton.setAttribute("aria-label", action.type ? `记录${CONFIG.doseWindows[action.type].label}` : action.message);
+  els.doseButton.classList.toggle("ready", Boolean(action.type && !isActionRecorded));
+  els.doseButton.classList.toggle("done", isActionRecorded || isCompleteDay(day));
+  els.doseButton.setAttribute(
+    "aria-label",
+    action.type
+      ? `${isActionRecorded ? "撤销" : "记录"}${CONFIG.doseWindows[action.type].label}`
+      : action.message,
+  );
   els.statusText.textContent = action.message;
 }
 
@@ -299,17 +298,25 @@ function getCurrentAction(now) {
   const evening = CONFIG.doseWindows.evening;
 
   if (isWithinWindow(now, morning)) {
-    return day.morning
-      ? { type: null, date: today, message: `午药已记录，${evening.start} 后记录晚药` }
-      : { type: "morning", date: today, message: formatWindow(morning) };
+    const recorded = Boolean(day.morning);
+    return {
+      type: "morning",
+      date: today,
+      recorded,
+      message: recorded ? "午药已记录，再点撤销" : formatWindow(morning),
+    };
   }
 
   if (isWithinWindow(now, evening)) {
     const eveningDate = windowOwnerDate(now, evening);
     const eveningDay = getDay(eveningDate);
-    return eveningDay.evening
-      ? { type: null, date: eveningDate, message: isCompleteDay(eveningDay) ? "这一天已完成" : "晚药已记录" }
-      : { type: "evening", date: eveningDate, message: formatWindow(evening) };
+    const recorded = Boolean(eveningDay.evening);
+    return {
+      type: "evening",
+      date: eveningDate,
+      recorded,
+      message: recorded ? "晚药已记录，再点撤销" : formatWindow(evening),
+    };
   }
 
   if (isCompleteDay(day)) {
@@ -353,6 +360,22 @@ function getDay(date) {
       rewarded: false,
     }
   );
+}
+
+function syncRewardState() {
+  const completedDates = Object.keys(state.days)
+    .filter((date) => isCompleteDay(state.days[date]))
+    .sort();
+  const earnedCredits = Math.floor(completedDates.length / CONFIG.daysPerBox);
+  const spentCredits = state.openedBoxes.length;
+
+  state.completedDays = completedDates.length;
+  state.progress = completedDates.length % CONFIG.daysPerBox;
+  state.boxCredits = Math.max(0, earnedCredits - spentCredits);
+
+  Object.entries(state.days).forEach(([date, day]) => {
+    day.rewarded = completedDates.includes(date);
+  });
 }
 
 function isCompleteDay(day) {
